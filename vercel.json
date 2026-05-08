@@ -1,0 +1,5 @@
+{
+  "rewrites": [
+    { "source": "/api/hearham", "destination": "https://hearham.com/api/repeaters/v1" }
+  ]
+}

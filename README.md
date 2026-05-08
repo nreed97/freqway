@@ -1,5 +1,7 @@
 # Freqway — Ham Radio Repeater Route Planner
 
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/nreed97/freqway)
+
 Plan a driving route and instantly find every repeater along the way, sorted start-to-end so the next machine you need is always at the top of the list.
 
 ![Freqway with a route loaded](docs/screenshots/02-route-loaded.png)
@@ -44,7 +46,36 @@ Export the visible repeater list directly to your radio programming software:
 
 ---
 
-## Getting started
+## Deploy to Vercel (recommended)
+
+Vercel is free for personal projects and deploys automatically on every push.
+
+1. **Fork or clone** this repo to your GitHub account
+2. Go to [vercel.com](https://vercel.com) and sign in with GitHub
+3. Click **Add New › Project**, find `freqway`, and click **Import**
+4. Leave all settings at their defaults — Vercel auto-detects Vite
+5. Click **Deploy**
+
+That's it. Vercel handles the HearHam API proxy via `vercel.json` automatically, so no environment variables or extra config are needed.
+
+> **One-click deploy:** click the button at the top of this README to clone + deploy in one step.
+
+### Netlify
+
+1. Push this repo to GitHub
+2. Go to [netlify.com](https://netlify.com) › **Add new site › Import an existing project**
+3. Connect your GitHub repo
+4. Set **Build command** to `npm run build` and **Publish directory** to `dist`
+5. Add a `public/_redirects` file (see below) for the API proxy, then deploy
+
+```
+# public/_redirects
+/api/hearham  https://hearham.com/api/repeaters/v1  200
+```
+
+---
+
+## Local development
 
 ```bash
 git clone https://github.com/nreed97/freqway.git
@@ -53,7 +84,7 @@ npm install
 npm run dev
 ```
 
-Open [http://localhost:5173](http://localhost:5173).
+Open [http://localhost:5173](http://localhost:5173). The Vite dev server proxies the HearHam API automatically — no extra config needed locally.
 
 ### Build for production
 
