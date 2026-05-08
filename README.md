@@ -60,6 +60,22 @@ That's it. Vercel handles the HearHam API proxy via `vercel.json` automatically,
 
 > **One-click deploy:** click the button at the top of this README to clone + deploy in one step.
 
+### Linux VPS (nginx)
+
+```bash
+# One-liner — handles install, build, nginx config, and optional SSL
+curl -fsSL https://raw.githubusercontent.com/nreed97/freqway/main/deploy/deploy.sh | bash -s -- --domain yourdomain.com --ssl
+```
+
+Or clone and run locally:
+
+```bash
+git clone https://github.com/nreed97/freqway.git
+bash freqway/deploy/deploy.sh --domain yourdomain.com --ssl
+```
+
+Omit `--ssl` if you don't have a domain yet (uses your server's IP over HTTP). Full step-by-step instructions in [deploy/DEPLOY.md](deploy/DEPLOY.md).
+
 ### Netlify
 
 1. Push this repo to GitHub
