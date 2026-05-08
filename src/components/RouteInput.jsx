@@ -54,7 +54,7 @@ export default function RouteInput({ onSearch, loading }) {
             label={`Stop ${i + 1}`}
             value={stop.value}
             onChange={v => updateStop(stop.id, v, null)}
-            onSelect={c => updateStop(stop.id, stop.value, c)}
+            onSelect={c => setStops(s => s.map(w => w.id === stop.id ? { ...w, coord: c } : w))}
             disabled={loading}
           />
         </StopRow>
