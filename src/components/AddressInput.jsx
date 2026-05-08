@@ -21,7 +21,7 @@ export default function AddressInput({ label, value, onChange, onSelect, disable
   const abortRef = useRef(null)
   const pickedValueRef = useRef(null)  // suppresses re-fetch after picking a suggestion
 
-  const debounced = useDebounce(value, 380)
+  const debounced = useDebounce(value, 500)
 
   // Fetch suggestions when debounced input changes
   useEffect(() => {
