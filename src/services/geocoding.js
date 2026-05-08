@@ -1,26 +1,51 @@
 import log from '../utils/logger.js'
 
-// Proxy through Vite dev server to avoid CORS issues with non-200 responses
 const NOMINATIM = '/api/nominatim'
 const HEADERS = { 'Accept-Language': 'en' }
 
-export async function geocode(query) {
-  const url = `${NOMINATIM}/search?q=${encodeURIComponent(query)}&format=json&limit=1&countrycodes=us`
-  log.info('geocoding', `geocode("${query}")`, { url })
-  const done = log.timer('geocoding', `geocode("${query}")`)
+// Normalise separators and collapse whitespace so queries like
+// "9113 NE 105th St; Vancouver, WA" reach the geocoder clean.
+function sanitize(q) {
+  return q.replace(/[;|]+/g, ',').replace(/,\s*,+/g, ',').trim()
+}
 
+// If the query looks like a street address (has digits at the start),
+// extract just the city/state tail — everything after the first comma.
+// "9113 NE 105th St, Vancouver, WA" → "Vancouver, WA"
+function cityStateFromAddress(q) {
+  if (!/^\d/.test(q.trim())) return null
+  const tail = q.split(',').slice(1).join(',').trim()
+  return tail.length > 1 ? tail : null
+}
+
+async function nominatimSearch(q) {
+  const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us`
   const res = await fetch(url, { headers: HEADERS })
-  if (!res.ok) {
-    log.error('geocoding', `HTTP ${res.status} for geocode("${query}")`)
-    throw new Error(`Geocoding failed: ${res.status}`)
+  if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`)
+  return res.json()
+}
+
+export async function geocode(query) {
+  const q = sanitize(query)
+  log.info('geocoding', `geocode("${q}")`)
+  const done = log.timer('geocoding', `geocode("${q}")`)
+
+  let data = await nominatimSearch(q)
+
+  // Full address returned nothing — retry with just the city/state portion.
+  if (!data.length) {
+    const fallback = cityStateFromAddress(q)
+    if (fallback) {
+      log.info('geocoding', `no results for full address, retrying with "${fallback}"`)
+      data = await nominatimSearch(fallback)
+    }
   }
 
-  const data = await res.json()
   done({ results: data.length })
 
   if (!data.length) {
-    log.warn('geocoding', `No results for "${query}"`)
-    throw new Error(`No results found for "${query}"`)
+    log.warn('geocoding', `No results for "${q}"`)
+    throw new Error(`No results found for "${q}". Try adding a state abbreviation, e.g. "Vancouver, WA".`)
   }
 
   const result = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), display: data[0].display_name }
@@ -28,40 +53,45 @@ export async function geocode(query) {
   return result
 }
 
-// Autocomplete via Photon (Komoot) — OSM-backed, CORS-enabled, no burst rate limit.
-// Kept separate from geocode() which uses Nominatim for final single-shot resolution.
+// ── Autocomplete ─────────────────────────────────────────────────────────────
+// Uses Photon (Komoot) — CORS-enabled, no burst limit, OSM-backed.
+// For street addresses Photon's index is sparse, so we query with just the
+// city/state tail when we detect a house-number prefix.
+
 const PHOTON = 'https://photon.komoot.io/api'
-// Bounding box covering all US states incl. Alaska/Hawaii (lon_min,lat_min,lon_max,lat_max).
-// Eastern boundary is -66 (not 180) so we don't pull in European/Asian results.
+// Bounding box: all US states incl. Alaska/Hawaii. Eastern cap at -66 keeps
+// out European results that share place names with US cities.
 const US_BBOX = '-180,18,-66,72'
-// Geographic center of the contiguous US — biases Photon to prefer US results for
-// ambiguous queries (e.g. "Springfield" → Illinois/Missouri, not the UK one).
+// Geographic centre of contiguous US — biases results toward US when the
+// place name is ambiguous (Vancouver → WA, not BC or UK).
 const US_BIAS = 'lat=39.5&lon=-98.35'
 
-// Lower number = higher priority in the suggestion list.
 function photonRank(p) {
   const v = p.osm_value ?? ''
-  if (['city', 'town'].includes(v))                          return 0
+  if (['city', 'town'].includes(v))                           return 0
   if (['village', 'suburb', 'borough', 'hamlet'].includes(v)) return 1
-  if (['neighbourhood', 'quarter'].includes(v))              return 2
-  if (p.osm_key === 'highway' || p.street)                   return 3
+  if (['neighbourhood', 'quarter'].includes(v))               return 2
+  if (p.osm_key === 'highway' || p.street)                    return 3
   return 4
 }
 
 export async function geocodeSuggest(query) {
   if (!query || query.trim().length < 3) return []
-  const url = `${PHOTON}/?q=${encodeURIComponent(query)}&limit=10&lang=en&bbox=${US_BBOX}&${US_BIAS}`
-  log.debug('geocoding', `suggest("${query}") via Photon`, { url })
+
+  const q = sanitize(query)
+  // If the user typed a full street address, Photon won't find it by number —
+  // query the city/state tail so we still return useful place suggestions.
+  const photonQ = cityStateFromAddress(q) ?? q
+
+  const url = `${PHOTON}/?q=${encodeURIComponent(photonQ)}&limit=10&lang=en&bbox=${US_BBOX}&${US_BIAS}`
+  log.debug('geocoding', `suggest("${photonQ}") via Photon`)
 
   try {
     const res = await fetch(url)
-    if (!res.ok) {
-      log.warn('geocoding', `suggest HTTP ${res.status}`)
-      return []
-    }
-    const geojson = await res.json()
-    const features = geojson.features ?? []
-    log.debug('geocoding', `suggest("${query}") → ${features.length} raw results`)
+    if (!res.ok) { log.warn('geocoding', `suggest HTTP ${res.status}`); return [] }
+
+    const features = (await res.json()).features ?? []
+    log.debug('geocoding', `suggest → ${features.length} raw results`)
 
     return features
       .filter(f => f.properties?.countrycode === 'US')
@@ -70,12 +100,12 @@ export async function geocodeSuggest(query) {
       .map(f => {
         const p = f.properties ?? {}
         const [lon, lat] = f.geometry.coordinates
-        return {
-          lat,
-          lon,
-          display: buildPhotonDisplay(p),
-          short: buildPhotonShort(p),
-        }
+        // For street-address queries, keep the original house number + street
+        // but use the resolved city coords so the route starts in the right spot.
+        const short = cityStateFromAddress(q)
+          ? buildAddressShort(q, p)
+          : buildPhotonShort(p)
+        return { lat, lon, display: buildPhotonDisplay(p), short }
       })
   } catch (err) {
     log.warn('geocoding', 'suggest fetch failed', err)
@@ -83,11 +113,19 @@ export async function geocodeSuggest(query) {
   }
 }
 
+// For a full address query: preserve the street portion, replace city/state
+// with the Photon-resolved name so display is unambiguous.
+function buildAddressShort(originalQ, p) {
+  const streetPart = originalQ.split(',')[0].trim()
+  const city  = p.city ?? p.county ?? p.name ?? ''
+  const state = p.state ?? ''
+  return [streetPart, city, state].filter(Boolean).join(', ')
+}
+
 function buildPhotonShort(p) {
   const name  = p.name ?? ''
   const city  = p.city ?? p.county ?? ''
   const state = p.state ?? ''
-  // For a city result, name === city — avoid "Minneapolis, Minneapolis, MN"
   const placePart = (name && name !== city) ? name : (city || name)
   const cityPart  = (name && name !== city) ? city : ''
   return [placePart, cityPart, state].filter(Boolean).join(', ')
@@ -100,22 +138,15 @@ function buildPhotonDisplay(p) {
 }
 
 // Photon reverse geocode — used for state detection along route.
-// Reverse endpoint is at the root, not under /api/.
 export async function reverseGeocode(lat, lon) {
   const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=en`
-  log.debug('geocoding', `reverseGeocode(${lat.toFixed(4)}, ${lon.toFixed(4)}) via Photon`)
+  log.debug('geocoding', `reverseGeocode(${lat.toFixed(4)}, ${lon.toFixed(4)})`)
 
   const res = await fetch(url)
-  if (!res.ok) {
-    log.error('geocoding', `HTTP ${res.status} for reverseGeocode(${lat}, ${lon})`)
-    throw new Error(`Reverse geocoding failed: ${res.status}`)
-  }
+  if (!res.ok) throw new Error(`Reverse geocoding failed: ${res.status}`)
 
-  const geojson = await res.json()
-  const props = geojson.features?.[0]?.properties ?? {}
-  // Photon returns state name in `state` for US results
+  const props = (await res.json()).features?.[0]?.properties ?? {}
   const state = props.state ?? null
   log.debug('geocoding', `reverseGeocode → state: ${state ?? '(none)'}`)
   return state
 }
-
