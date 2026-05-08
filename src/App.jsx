@@ -39,8 +39,7 @@ export default function App() {
     })
   }, [allRepeaters, filters])
 
-  // startCoord/endCoord may be pre-resolved from autocomplete selection
-  const handleSearch = useCallback(async ({ start, end, corridor, startCoord: preStart, endCoord: preEnd }) => {
+  const handleSearch = useCallback(async ({ start, startCoord: preStart, stops, end, endCoord: preEnd, corridor }) => {
     setLoading(true)
     setError('')
     setRoute(null)
@@ -48,27 +47,37 @@ export default function App() {
     setSelectedRepeater(null)
     setCorridorMiles(corridor)
 
-    log.info('app', 'handleSearch', { start, end, corridor, preResolved: !!(preStart && preEnd) })
+    log.info('app', 'handleSearch', { start, end, corridor, stopCount: stops.length })
     const totalDone = log.timer('app', 'full search pipeline')
 
     try {
+      // Geocode any stops that weren't resolved via autocomplete
+      setStatus('Geocoding addresses…')
+      const toGeocode = []
+
       let startCoord = preStart
-      let endCoord = preEnd
+      let endCoord   = preEnd
+      if (!startCoord) toGeocode.push(geocode(start).then(r => { startCoord = r }))
+      if (!endCoord)   toGeocode.push(geocode(end).then(r => { endCoord = r }))
 
-      if (!startCoord || !endCoord) {
-        setStatus('Geocoding addresses…')
-        const toGeocode = []
-        if (!startCoord) toGeocode.push(geocode(start).then(r => { startCoord = r }))
-        if (!endCoord)   toGeocode.push(geocode(end).then(r => { endCoord = r }))
-        await Promise.all(toGeocode)
-      } else {
-        log.info('app', 'using pre-resolved coords from autocomplete')
-      }
+      const stopCoords = stops.map(s => ({ coord: s.coord }))
+      stops.forEach((s, i) => {
+        if (!s.coord) {
+          toGeocode.push(geocode(s.value).then(r => { stopCoords[i].coord = r }))
+        }
+      })
 
-      log.debug('app', 'coords resolved', { startCoord, endCoord })
+      await Promise.all(toGeocode)
+
+      const allWaypoints = [
+        startCoord,
+        ...stopCoords.map(s => s.coord),
+        endCoord,
+      ]
+      log.debug('app', 'all waypoints resolved', allWaypoints)
 
       setStatus('Fetching driving route…')
-      const routeData = await fetchRoute(startCoord.lat, startCoord.lon, endCoord.lat, endCoord.lon)
+      const routeData = await fetchRoute(allWaypoints)
       setRoute(routeData)
 
       setStatus('Loading repeater database…')

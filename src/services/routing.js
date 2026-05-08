@@ -27,9 +27,12 @@ function decodePolyline(encoded) {
   return coords
 }
 
-export async function fetchRoute(startLat, startLon, endLat, endLon) {
-  const url = `${OSRM}/${startLon},${startLat};${endLon},${endLat}?overview=full&geometries=polyline`
-  log.info('routing', `fetchRoute (${startLat.toFixed(4)},${startLon.toFixed(4)}) → (${endLat.toFixed(4)},${endLon.toFixed(4)})`, { url })
+// waypoints: [{lat, lon}, ...] — at least 2 entries (start + end).
+// OSRM accepts any number separated by semicolons.
+export async function fetchRoute(waypoints) {
+  const coordStr = waypoints.map(w => `${w.lon},${w.lat}`).join(';')
+  const url = `${OSRM}/${coordStr}?overview=full&geometries=polyline`
+  log.info('routing', `fetchRoute ${waypoints.length} waypoints`, { url })
   const done = log.timer('routing', 'OSRM fetch')
 
   const res = await fetch(url)
@@ -47,12 +50,7 @@ export async function fetchRoute(startLat, startLon, endLat, endLon) {
   const route = data.routes[0]
   const coords = decodePolyline(route.geometry)
 
-  const result = {
-    coords,
-    distanceMeters: route.distance,
-    durationSeconds: route.duration,
-  }
+  const result = { coords, distanceMeters: route.distance, durationSeconds: route.duration }
   done({ coordCount: coords.length, distKm: (route.distance / 1000).toFixed(1), durationMin: Math.round(route.duration / 60) })
-  log.debug('routing', `decoded ${coords.length} coords, ${(route.distance / 1000).toFixed(1)} km, ${Math.round(route.duration / 60)} min`)
   return result
 }
