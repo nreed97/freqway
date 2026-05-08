@@ -1,0 +1,59 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Leaflet container must have explicit height */
+.leaflet-container {
+  height: 100%;
+  width: 100%;
+  z-index: 0;
+}
+
+/* Custom repeater marker styles */
+.repeater-marker-2m {
+  background-color: #3b82f6;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.repeater-marker-70cm {
+  background-color: #f59e0b;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.repeater-marker-125cm {
+  background-color: #10b981;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.repeater-marker-10m {
+  background-color: #ef4444;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+.repeater-marker-other {
+  background-color: #8b5cf6;
+  border: 2px solid white;
+  border-radius: 50%;
+  box-shadow: 0 1px 4px rgba(0,0,0,0.4);
+}
+
+.leaflet-popup-content {
+  font-size: 13px;
+  min-width: 200px;
+}
+
+/* Scrollbar styling for list panel */
+.repeater-list::-webkit-scrollbar {
+  width: 6px;
+}
+.repeater-list::-webkit-scrollbar-track {
+  background: #1e293b;
+}
+.repeater-list::-webkit-scrollbar-thumb {
+  background: #475569;
+  border-radius: 3px;
+}
