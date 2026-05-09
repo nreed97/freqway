@@ -19,7 +19,7 @@ export default function AddressInput({ label, value, onChange, onSelect, disable
   const containerRef = useRef(null)
   const inputRef = useRef(null)
   const abortRef = useRef(null)
-  const pickedValueRef = useRef(null)  // suppresses re-fetch after picking a suggestion
+  const pickedValueRef = useRef(value)  // suppress fetch for pre-populated values (e.g. from URL params)
 
   const debounced = useDebounce(value, 500)
 
