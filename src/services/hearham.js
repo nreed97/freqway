@@ -1,7 +1,7 @@
 import log from '../utils/logger.js'
 
 const HEARHAM_URL = '/api/hearham'
-const CACHE_KEY = 'freqway_hearham_us'
+const CACHE_KEY = 'freqway_hearham_us_v2'
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 let _memCache = null
@@ -51,6 +51,9 @@ function normalizeRepeater(r) {
     operational: r.operational === 1,
     use: r.restriction ? 'MEMBERS' : 'OPEN',
     notes: r.description ?? '',
+    irlp: r.irlp_node ?? r.irlp ?? null,
+    echolink: r.echolink_node ?? r.echolink ?? null,
+    allstar: r.allstar_node ?? r.allstar ?? null,
     id: `${r.callsign ?? r.id}_${freqMHz}`,
   }
 }

@@ -28,6 +28,13 @@ export default function App() {
   const [error, setError] = useState('')
   const [corridorMiles, setCorridorMiles] = useState(25)
   const [showHelp, setShowHelp] = useState(false)
+  const [copied,   setCopied]   = useState(false)
+
+  function handleShare() {
+    navigator.clipboard.writeText(window.location.href)
+    setCopied(true)
+    setTimeout(() => setCopied(false), 2000)
+  }
 
   const visibleRepeaters = useMemo(() => {
     return allRepeaters.filter(r => {
@@ -114,17 +121,38 @@ export default function App() {
           <span className="text-xl font-bold tracking-tight text-white">Freqway</span>
           <span className="text-xs text-slate-400 font-normal hidden sm:block">Ham Radio Repeater Route Planner</span>
         </div>
-        <button
-          onClick={() => setShowHelp(true)}
-          title="How to use Freqway"
-          className="ml-auto flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"
-        >
-          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="12" cy="12" r="10" />
-            <path d="M12 16v-4M12 8h.01" />
-          </svg>
-          Help
-        </button>
+        <div className="ml-auto flex items-center gap-1">
+          {route && (
+            <button
+              onClick={handleShare}
+              title="Copy shareable link"
+              className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"
+            >
+              {copied ? (
+                <>
+                  <svg className="w-4 h-4 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M20 6L9 17l-5-5"/></svg>
+                  <span className="text-green-400">Copied!</span>
+                </>
+              ) : (
+                <>
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71"/></svg>
+                  Share
+                </>
+              )}
+            </button>
+          )}
+          <button
+            onClick={() => setShowHelp(true)}
+            title="How to use Freqway"
+            className="flex items-center gap-1.5 text-xs text-slate-400 hover:text-white transition-colors px-2 py-1 rounded hover:bg-slate-700"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M12 16v-4M12 8h.01" />
+            </svg>
+            Help
+          </button>
+        </div>
       </header>
 
       {showHelp && <HelpModal onClose={() => setShowHelp(false)} />}

@@ -1,20 +1,52 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import AddressInput from './AddressInput.jsx'
 
 const CORRIDOR_OPTIONS = [5, 10, 25, 50]
 
-function makeStop() {
-  return { id: crypto.randomUUID(), value: '', coord: null }
+function makeStop(value = '') {
+  return { id: crypto.randomUUID(), value, coord: null }
+}
+
+function readURLParams() {
+  const p = new URLSearchParams(window.location.search)
+  return {
+    start:    p.get('start')    ?? '',
+    end:      p.get('end')      ?? '',
+    stops:    (p.get('stops') ?? '').split('|').filter(Boolean).map(v => makeStop(v)),
+    corridor: Number(p.get('corridor')) || 25,
+  }
+}
+
+function writeURLParams({ start, end, stops, corridor }) {
+  const p = new URLSearchParams()
+  if (start)        p.set('start',    start)
+  if (end)          p.set('end',      end)
+  if (stops.length) p.set('stops',    stops.map(s => s.value).filter(Boolean).join('|'))
+  p.set('corridor', corridor)
+  window.history.replaceState(null, '', '?' + p.toString())
 }
 
 export default function RouteInput({ onSearch, loading }) {
-  const [start,    setStart]    = useState({ value: '', coord: null })
-  const [end,      setEnd]      = useState({ value: '', coord: null })
-  const [stops,    setStops]    = useState([])   // middle waypoints
-  const [corridor, setCorridor] = useState(25)
+  const init = useRef(readURLParams())
+
+  const [start,      setStart]      = useState({ value: init.current.start, coord: null })
+  const [end,        setEnd]        = useState({ value: init.current.end,   coord: null })
+  const [stops,      setStops]      = useState(init.current.stops)
+  const [corridor,   setCorridor]   = useState(init.current.corridor)
+  const [dragOverIdx, setDragOverIdx] = useState(null)
+  const dragIdx = useRef(null)
+
+  // Auto-search on mount if URL has a route pre-loaded
+  useEffect(() => {
+    const { start: s, end: e, stops: st, corridor: c } = init.current
+    if (s && e) {
+      onSearch({ start: s, startCoord: null, stops: st, end: e, endCoord: null, corridor: c })
+    }
+  }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
   const canSubmit = !loading && start.value.trim() && end.value.trim()
 
+  // ── Stops management ───────────────────────────────────────────────────────
   function addStop() {
     setStops(s => [...s, makeStop()])
   }
@@ -23,21 +55,58 @@ export default function RouteInput({ onSearch, loading }) {
     setStops(s => s.filter(w => w.id !== id))
   }
 
-  function updateStop(id, value, coord) {
-    setStops(s => s.map(w => w.id === id ? { ...w, value, coord } : w))
+  function updateStopValue(id, value) {
+    setStops(s => s.map(w => w.id === id ? { ...w, value, coord: null } : w))
   }
 
+  function updateStopCoord(id, coord) {
+    setStops(s => s.map(w => w.id === id ? { ...w, coord } : w))
+  }
+
+  // ── Drag-to-reorder ────────────────────────────────────────────────────────
+  function handleDragStart(e, i) {
+    dragIdx.current = i
+    e.dataTransfer.effectAllowed = 'move'
+  }
+
+  function handleDragOver(e, i) {
+    e.preventDefault()
+    e.dataTransfer.dropEffect = 'move'
+    setDragOverIdx(i)
+  }
+
+  function handleDrop(e, i) {
+    e.preventDefault()
+    const from = dragIdx.current
+    if (from === null || from === i) { setDragOverIdx(null); return }
+    setStops(s => {
+      const next = [...s]
+      const [moved] = next.splice(from, 1)
+      next.splice(i, 0, moved)
+      return next
+    })
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
+  function handleDragEnd() {
+    dragIdx.current = null
+    setDragOverIdx(null)
+  }
+
+  // ── Submit ─────────────────────────────────────────────────────────────────
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
+    writeURLParams({ start: start.value, end: end.value, stops, corridor })
     onSearch({ start: start.value, startCoord: start.coord, stops, end: end.value, endCoord: end.coord, corridor })
   }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-2">
+    <form onSubmit={handleSubmit} className="space-y-1">
 
       {/* Start */}
-      <StopRow dot="bg-green-500">
+      <StopRow dot="bg-green-500" showLine={stops.length > 0 || true}>
         <AddressInput
           label="Start"
           value={start.value}
@@ -49,28 +118,38 @@ export default function RouteInput({ onSearch, loading }) {
 
       {/* Middle stops */}
       {stops.map((stop, i) => (
-        <StopRow key={stop.id} dot="bg-blue-400" onRemove={() => removeStop(stop.id)}>
+        <StopRow
+          key={stop.id}
+          dot="bg-blue-400"
+          dragging={dragIdx.current === i}
+          dragOver={dragOverIdx === i}
+          onDragStart={e => handleDragStart(e, i)}
+          onDragOver={e => handleDragOver(e, i)}
+          onDrop={e => handleDrop(e, i)}
+          onDragEnd={handleDragEnd}
+          onRemove={() => removeStop(stop.id)}
+        >
           <AddressInput
             label={`Stop ${i + 1}`}
             value={stop.value}
-            onChange={v => updateStop(stop.id, v, null)}
-            onSelect={c => setStops(s => s.map(w => w.id === stop.id ? { ...w, coord: c } : w))}
+            onChange={v => updateStopValue(stop.id, v)}
+            onSelect={c => updateStopCoord(stop.id, c)}
             disabled={loading}
           />
         </StopRow>
       ))}
 
-      {/* Add stop button */}
-      <div className="pl-5">
+      {/* Add stop */}
+      <div className="pl-5 py-0.5">
         <button
           type="button"
           onClick={addStop}
           disabled={loading}
-          className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 disabled:opacity-40 transition-colors py-0.5"
+          className="flex items-center gap-1.5 text-xs text-blue-400 hover:text-blue-300 disabled:opacity-40 transition-colors"
         >
           <svg className="w-3.5 h-3.5" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <circle cx="8" cy="8" r="6.5" />
-            <path d="M8 5v6M5 8h6" />
+            <circle cx="8" cy="8" r="6.5"/>
+            <path d="M8 5v6M5 8h6"/>
           </svg>
           Add stop
         </button>
@@ -88,7 +167,7 @@ export default function RouteInput({ onSearch, loading }) {
       </StopRow>
 
       {/* Corridor */}
-      <div className="pt-1">
+      <div className="pt-2">
         <label className="block text-xs font-medium text-slate-400 mb-1">Corridor width</label>
         <div className="flex gap-2">
           {CORRIDOR_OPTIONS.map(mi => (
@@ -118,18 +197,42 @@ export default function RouteInput({ onSearch, loading }) {
   )
 }
 
-function StopRow({ dot, onRemove, children }) {
+function StopRow({ dot, onRemove, dragging, dragOver, onDragStart, onDragOver, onDrop, onDragEnd, children }) {
+  const isDraggable = !!onRemove
+
   return (
-    <div className="flex items-start gap-2">
-      {/* Dot */}
-      <div className="flex flex-col items-center pt-6 shrink-0">
-        <span className={`w-2.5 h-2.5 rounded-full ${dot} shrink-0`} />
+    <div
+      className={`flex items-start gap-2 rounded transition-colors ${
+        dragOver ? 'bg-blue-900/30 ring-1 ring-blue-500' : ''
+      } ${dragging ? 'opacity-40' : ''}`}
+      onDragOver={onDragOver}
+      onDrop={onDrop}
+    >
+      {/* Drag handle (stops only) or spacer */}
+      <div className="flex flex-col items-center pt-6 shrink-0 gap-0.5">
+        {isDraggable ? (
+          <div
+            draggable
+            onDragStart={onDragStart}
+            onDragEnd={onDragEnd}
+            className="cursor-grab active:cursor-grabbing text-slate-600 hover:text-slate-400 transition-colors select-none"
+            title="Drag to reorder"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+              <circle cx="4" cy="3" r="1"/><circle cx="8" cy="3" r="1"/>
+              <circle cx="4" cy="6" r="1"/><circle cx="8" cy="6" r="1"/>
+              <circle cx="4" cy="9" r="1"/><circle cx="8" cy="9" r="1"/>
+            </svg>
+          </div>
+        ) : (
+          <span className={`w-2.5 h-2.5 rounded-full ${dot} shrink-0`} />
+        )}
       </div>
 
       {/* Input */}
       <div className="flex-1 min-w-0">{children}</div>
 
-      {/* Remove button (stops only) */}
+      {/* Remove */}
       {onRemove && (
         <button
           type="button"
@@ -138,7 +241,7 @@ function StopRow({ dot, onRemove, children }) {
           title="Remove stop"
         >
           <svg className="w-4 h-4" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M4 4l8 8M12 4l-8 8" />
+            <path d="M4 4l8 8M12 4l-8 8"/>
           </svg>
         </button>
       )}
