@@ -1,5 +1,6 @@
 {
   "rewrites": [
-    { "source": "/api/hearham", "destination": "https://hearham.com/api/repeaters/v1" }
+    { "source": "/api/nominatim/:path*", "destination": "https://nominatim.openstreetmap.org/:path*" },
+    { "source": "/api/hearham",          "destination": "https://hearham.com/api/repeaters/v1" }
   ]
 }

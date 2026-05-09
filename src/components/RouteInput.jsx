@@ -3,25 +3,51 @@ import AddressInput from './AddressInput.jsx'
 
 const CORRIDOR_OPTIONS = [5, 10, 25, 50]
 
-function makeStop(value = '') {
-  return { id: crypto.randomUUID(), value, coord: null }
+function makeStop(value = '', coord = null) {
+  return { id: crypto.randomUUID(), value, coord }
+}
+
+function parseLL(str) {
+  if (!str) return null
+  const [lat, lon] = str.split(',').map(Number)
+  return (isFinite(lat) && isFinite(lon)) ? { lat, lon } : null
 }
 
 function readURLParams() {
   const p = new URLSearchParams(window.location.search)
+
+  // Stops: "label:lat,lon" or just "label" (legacy share links without coords)
+  const stops = (p.get('stops') ?? '').split('|').filter(Boolean).map(raw => {
+    const sep = raw.lastIndexOf(':')
+    if (sep > 0) {
+      const coord = parseLL(raw.slice(sep + 1))
+      if (coord) return makeStop(raw.slice(0, sep), coord)
+    }
+    return makeStop(raw)
+  })
+
   return {
-    start:    p.get('start')    ?? '',
-    end:      p.get('end')      ?? '',
-    stops:    (p.get('stops') ?? '').split('|').filter(Boolean).map(v => makeStop(v)),
-    corridor: Number(p.get('corridor')) || 25,
+    start:      p.get('start') ?? '',
+    startCoord: parseLL(p.get('startLL')),
+    end:        p.get('end')   ?? '',
+    endCoord:   parseLL(p.get('endLL')),
+    stops,
+    corridor:   Number(p.get('corridor')) || 25,
   }
 }
 
-function writeURLParams({ start, end, stops, corridor }) {
+function writeURLParams({ start, startCoord, end, endCoord, stops, corridor }) {
   const p = new URLSearchParams()
-  if (start)        p.set('start',    start)
-  if (end)          p.set('end',      end)
-  if (stops.length) p.set('stops',    stops.map(s => s.value).filter(Boolean).join('|'))
+  if (start) p.set('start', start)
+  if (startCoord) p.set('startLL', `${startCoord.lat.toFixed(5)},${startCoord.lon.toFixed(5)}`)
+  if (end)   p.set('end',   end)
+  if (endCoord)   p.set('endLL',   `${endCoord.lat.toFixed(5)},${endCoord.lon.toFixed(5)}`)
+  if (stops.length) {
+    p.set('stops', stops
+      .filter(s => s.value)
+      .map(s => s.coord ? `${s.value}:${s.coord.lat.toFixed(5)},${s.coord.lon.toFixed(5)}` : s.value)
+      .join('|'))
+  }
   p.set('corridor', corridor)
   window.history.replaceState(null, '', '?' + p.toString())
 }
@@ -29,8 +55,8 @@ function writeURLParams({ start, end, stops, corridor }) {
 export default function RouteInput({ onSearch, loading }) {
   const init = useRef(readURLParams())
 
-  const [start,      setStart]      = useState({ value: init.current.start, coord: null })
-  const [end,        setEnd]        = useState({ value: init.current.end,   coord: null })
+  const [start,      setStart]      = useState({ value: init.current.start, coord: init.current.startCoord })
+  const [end,        setEnd]        = useState({ value: init.current.end,   coord: init.current.endCoord })
   const [stops,      setStops]      = useState(init.current.stops)
   const [corridor,   setCorridor]   = useState(init.current.corridor)
   const [dragOverIdx, setDragOverIdx] = useState(null)
@@ -38,9 +64,9 @@ export default function RouteInput({ onSearch, loading }) {
 
   // Auto-search on mount if URL has a route pre-loaded
   useEffect(() => {
-    const { start: s, end: e, stops: st, corridor: c } = init.current
+    const { start: s, startCoord: sc, end: e, endCoord: ec, stops: st, corridor: c } = init.current
     if (s && e) {
-      onSearch({ start: s, startCoord: null, stops: st, end: e, endCoord: null, corridor: c })
+      onSearch({ start: s, startCoord: sc, stops: st, end: e, endCoord: ec, corridor: c })
     }
   }, []) // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -98,7 +124,7 @@ export default function RouteInput({ onSearch, loading }) {
   function handleSubmit(e) {
     e.preventDefault()
     if (!canSubmit) return
-    writeURLParams({ start: start.value, end: end.value, stops, corridor })
+    writeURLParams({ start: start.value, startCoord: start.coord, end: end.value, endCoord: end.coord, stops, corridor })
     onSearch({ start: start.value, startCoord: start.coord, stops, end: end.value, endCoord: end.coord, corridor })
   }
 

@@ -30,9 +30,6 @@ export default function RepeaterList({ repeaters, onSelect, selectedId }) {
           {filtered.length} repeater{filtered.length !== 1 ? 's' : ''}
           {search ? ` matching "${search}"` : ' along route'}
         </span>
-        {repeaters.length > 0 && (
-          <ExportMenu repeaters={repeaters} />
-        )}
       </div>
 
       <input
@@ -42,6 +39,12 @@ export default function RepeaterList({ repeaters, onSelect, selectedId }) {
         placeholder="Search callsign, city…"
         className="mb-2 w-full bg-slate-700 border border-slate-600 rounded px-2.5 py-1.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-blue-500 shrink-0"
       />
+
+      {repeaters.length > 0 && (
+        <div className="mb-2 shrink-0">
+          <ExportMenu repeaters={repeaters} />
+        </div>
+      )}
 
       <div className="overflow-y-auto repeater-list flex-1 min-h-0 -mx-1 px-1">
         {filtered.length === 0 && (
@@ -110,10 +113,13 @@ function ExportMenu({ repeaters }) {
     <div className="relative">
       <button
         onClick={() => setOpen(o => !o)}
-        className="text-xs text-blue-400 hover:text-blue-300 transition-colors flex items-center gap-0.5"
+        className="w-full flex items-center justify-center gap-1.5 bg-slate-700 hover:bg-slate-600 border border-slate-500 hover:border-slate-400 text-slate-200 text-xs font-medium py-1.5 px-3 rounded-md transition-colors"
       >
-        Export
-        <svg className="w-3 h-3" viewBox="0 0 12 12" fill="currentColor">
+        <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
+          <path d="M8 2v8M5 7l3 3 3-3M3 12h10"/>
+        </svg>
+        Export to Radio
+        <svg className="w-3 h-3 text-slate-400 ml-auto" viewBox="0 0 12 12" fill="currentColor">
           <path d="M6 8L2 4h8L6 8z"/>
         </svg>
       </button>
@@ -121,7 +127,7 @@ function ExportMenu({ repeaters }) {
       {open && (
         <>
           <div className="fixed inset-0 z-40" onClick={() => setOpen(false)} />
-          <div className="absolute right-0 z-50 mt-1 w-44 bg-slate-800 border border-slate-600 rounded-md shadow-xl text-xs overflow-hidden">
+          <div className="absolute right-0 left-0 z-50 mt-1 bg-slate-800 border border-slate-600 rounded-md shadow-xl text-xs overflow-hidden">
             <div className="px-3 py-1.5 text-slate-500 font-medium border-b border-slate-700">Export format</div>
             <button onClick={() => pick(exportCHIRP)}
               className="w-full text-left px-3 py-2 hover:bg-slate-700 text-slate-200 transition-colors">

@@ -76,6 +76,23 @@ export default function App() {
 
       await Promise.all(toGeocode)
 
+      // Persist resolved coords into the URL so a page refresh reuses them
+      // and skips geocoding entirely.
+      {
+        const p = new URLSearchParams(window.location.search)
+        p.set('startLL', `${startCoord.lat.toFixed(5)},${startCoord.lon.toFixed(5)}`)
+        p.set('endLL',   `${endCoord.lat.toFixed(5)},${endCoord.lon.toFixed(5)}`)
+        const stopsParam = stops
+          .filter(s => s.value)
+          .map((s, i) => {
+            const c = stopCoords[i].coord
+            return c ? `${s.value}:${c.lat.toFixed(5)},${c.lon.toFixed(5)}` : s.value
+          })
+          .join('|')
+        if (stopsParam) p.set('stops', stopsParam); else p.delete('stops')
+        window.history.replaceState(null, '', '?' + p.toString())
+      }
+
       const allWaypoints = [
         startCoord,
         ...stopCoords.map(s => s.coord),
