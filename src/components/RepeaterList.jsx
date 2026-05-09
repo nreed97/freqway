@@ -118,7 +118,7 @@ function ExportMenu({ repeaters }) {
         <svg className="w-3.5 h-3.5 text-blue-400" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M8 2v8M5 7l3 3 3-3M3 12h10"/>
         </svg>
-        Export to Radio
+        Export Frequency List
         <svg className="w-3 h-3 text-slate-400 ml-auto" viewBox="0 0 12 12" fill="currentColor">
           <path d="M6 8L2 4h8L6 8z"/>
         </svg>
