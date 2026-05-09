@@ -36,7 +36,8 @@ if ! command -v nginx &>/dev/null; then
   sudo apt-get install -y nginx
 fi
 
-if ! command -v node &>/dev/null || [[ $(node -e "process.exit(Number(process.version.slice(1).split('.')[0]) < 18)"; echo $?) -eq 1 ]]; then
+NODE_MAJOR=$(command -v node &>/dev/null && node -e "console.log(parseInt(process.version.slice(1)))" || echo 0)
+if [[ "$NODE_MAJOR" -lt 18 ]]; then
   echo "==> Installing Node.js 20..."
   curl -fsSL https://deb.nodesource.com/setup_20.x | sudo -E bash -
   sudo apt-get install -y nodejs
