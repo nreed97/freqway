@@ -166,7 +166,13 @@ export default function MapView({ routeCoords, repeaters, selectedRepeater, onRe
             {picker.group.map(r => (
               <button
                 key={r.id}
-                onClick={() => { setPicker(null); onRepeaterClick(r) }}
+                onClick={() => {
+                  // If already selected, toggle-off won't open a popup so close picker manually.
+                  // Otherwise let openPopup() close it via Leaflet's single-popup behaviour,
+                  // which triggers onClose → setPicker(null).
+                  if (selectedRepeater?.id === r.id) setPicker(null)
+                  onRepeaterClick(r)
+                }}
                 style={{
                   display: 'flex', alignItems: 'center', gap: 6,
                   width: '100%', textAlign: 'left',
