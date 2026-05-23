@@ -49,17 +49,9 @@ if $SSL && ! command -v certbot &>/dev/null; then
 fi
 
 # ── Clone or update repo ─────────────────────────────────────────────────────
-if [[ -d "$REPO_DIR" ]]; then
-  echo "==> Updating repo..."
-  git -C "$REPO_DIR" pull || {
-    echo "==> Update failed — re-cloning..."
-    rm -rf "$REPO_DIR"
-    git clone "$REPO" "$REPO_DIR"
-  }
-else
-  echo "==> Cloning repo..."
-  git clone "$REPO" "$REPO_DIR"
-fi
+echo "==> Cloning repo..."
+rm -rf "$REPO_DIR"
+git clone "$REPO" "$REPO_DIR"
 
 # ── Build ────────────────────────────────────────────────────────────────────
 echo "==> Installing npm dependencies..."
