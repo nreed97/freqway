@@ -1,9 +1,11 @@
 /* global __BUILD_TIME__ */
 import { fmtMiles, fmtDuration } from '../utils/geo.js'
 
-const BUILD_DATE = new Date(__BUILD_TIME__).toLocaleDateString('en-US', {
-  month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
-})
+const BUILD_DATE = new Date(__BUILD_TIME__).toLocaleString('en-US', {
+  month: 'short', day: 'numeric', year: 'numeric',
+  hour: '2-digit', minute: '2-digit', hour12: false,
+  timeZone: 'UTC',
+}) + ' UTC'
 
 export default function StatusBar({ route, repeaterCount, status }) {
   return (
