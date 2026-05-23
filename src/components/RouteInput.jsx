@@ -53,7 +53,7 @@ function writeURLParams({ start, startCoord, end, endCoord, stops, corridor }) {
   window.history.replaceState(null, '', '?' + p.toString())
 }
 
-export default function RouteInput({ onSearch, loading }) {
+export default function RouteInput({ onSearch, onClear, hasRoute, loading }) {
   const init = useRef(readURLParams())
 
   const [start,      setStart]      = useState({ value: init.current.start, coord: init.current.startCoord })
@@ -145,6 +145,16 @@ export default function RouteInput({ onSearch, loading }) {
       () => setLocating(false),
       { timeout: 10000 }
     )
+  }
+
+  // ── Clear ──────────────────────────────────────────────────────────────────
+  function handleClear() {
+    setStart({ value: '', coord: null })
+    setEnd({ value: '', coord: null })
+    setStops([])
+    setCorridor(25)
+    window.history.replaceState(null, '', window.location.pathname)
+    onClear?.()
   }
 
   // ── Submit ─────────────────────────────────────────────────────────────────
@@ -241,13 +251,25 @@ export default function RouteInput({ onSearch, loading }) {
         </div>
       </div>
 
-      <button
-        type="submit"
-        disabled={!canSubmit}
-        className="w-full bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-md text-sm transition-colors"
-      >
-        {loading ? 'Planning route…' : 'Find Repeaters'}
-      </button>
+      <div className="flex gap-2">
+        {hasRoute && (
+          <button
+            type="button"
+            onClick={handleClear}
+            disabled={loading}
+            className="px-3 py-2.5 rounded-md text-sm font-medium text-slate-300 bg-slate-700 hover:bg-slate-600 disabled:opacity-40 transition-colors"
+          >
+            Clear
+          </button>
+        )}
+        <button
+          type="submit"
+          disabled={!canSubmit}
+          className="flex-1 bg-blue-600 hover:bg-blue-500 disabled:bg-slate-600 disabled:cursor-not-allowed text-white font-semibold py-2.5 rounded-md text-sm transition-colors"
+        >
+          {loading ? 'Planning route…' : 'Find Repeaters'}
+        </button>
+      </div>
     </form>
   )
 }

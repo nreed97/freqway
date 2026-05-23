@@ -132,6 +132,15 @@ export default function App() {
     }
   }, [])
 
+  const handleClear = useCallback(() => {
+    setRoute(null)
+    setAllRepeaters([])
+    setSelectedRepeater(null)
+    setStatus('')
+    setError('')
+    setMobileTab('route')
+  }, [])
+
   const handleRepeaterSelect = useCallback(r => {
     setSelectedRepeater(prev => prev?.id === r.id ? null : r)
   }, [])
@@ -197,7 +206,7 @@ export default function App() {
           {/* Route + Filters — hidden on mobile list tab */}
           <div className={mobileTab === 'list' ? 'hidden md:block shrink-0' : 'shrink-0'}>
             <div className="p-4 border-b border-slate-700">
-              <RouteInput onSearch={handleSearch} loading={loading} />
+              <RouteInput onSearch={handleSearch} onClear={handleClear} hasRoute={!!route} loading={loading} />
             </div>
 
             {error && (
