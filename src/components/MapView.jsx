@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react'
+import { useEffect, useRef, useState, useMemo } from 'react'
 import {
   MapContainer, TileLayer, Polyline, CircleMarker, Popup,
   Marker, useMap,
@@ -23,6 +23,10 @@ const BAND_COLOR = {
   'other': '#8b5cf6',
 }
 
+function locationKey(r) {
+  return `${r.lat.toFixed(4)},${r.lon.toFixed(4)}`
+}
+
 function FitBounds({ routeCoords }) {
   const map = useMap()
   useEffect(() => {
@@ -41,10 +45,38 @@ function FlyToRepeater({ repeater }) {
 
 export default function MapView({ routeCoords, repeaters, selectedRepeater, onRepeaterClick }) {
   const markerRefs = useRef({})
+  const [picker, setPicker] = useState(null) // { lat, lon, group }
+
+  // Group repeaters that share the same tower (~11m precision)
+  const locationGroups = useMemo(() => {
+    const groups = {}
+    for (const r of repeaters) {
+      const key = locationKey(r)
+      if (!groups[key]) groups[key] = []
+      groups[key].push(r)
+    }
+    return groups
+  }, [repeaters])
+
+  function getGroup(r) {
+    return locationGroups[locationKey(r)] ?? [r]
+  }
+
+  function handleDotClick(r) {
+    const group = getGroup(r)
+    if (group.length > 1) {
+      setPicker({ lat: r.lat, lon: r.lon, group })
+    } else {
+      onRepeaterClick(r)
+    }
+  }
 
   useEffect(() => {
     if (selectedRepeater) markerRefs.current[selectedRepeater.id]?.openPopup()
   }, [selectedRepeater])
+
+  // Close picker when repeaters list changes (new search)
+  useEffect(() => { setPicker(null) }, [repeaters])
 
   const startCoord = routeCoords[0]
   const endCoord   = routeCoords[routeCoords.length - 1]
@@ -75,19 +107,20 @@ export default function MapView({ routeCoords, repeaters, selectedRepeater, onRe
       {repeaters.map(r => {
         const color      = BAND_COLOR[r.band] ?? '#8b5cf6'
         const isSelected = selectedRepeater?.id === r.id
+        const isStacked  = getGroup(r).length > 1
         const tone       = r.tone ? `PL ${r.tone}` : r.tsq ? `DCS ${r.tsq}` : 'No tone'
         return (
           <CircleMarker
             key={r.id}
             center={[r.lat, r.lon]}
-            radius={isSelected ? 10 : 7}
+            radius={isSelected ? 10 : isStacked ? 9 : 7}
             pathOptions={{
-              color:       isSelected ? '#fff' : color,
+              color:       isSelected ? '#fff' : isStacked ? '#fff' : color,
               fillColor:   color,
               fillOpacity: 0.9,
-              weight:      isSelected ? 3 : 1.5,
+              weight:      isSelected ? 3 : isStacked ? 2.5 : 1.5,
             }}
-            eventHandlers={{ click: () => onRepeaterClick(r) }}
+            eventHandlers={{ click: () => handleDotClick(r) }}
             ref={el => { if (el) markerRefs.current[r.id] = el }}
           >
             <Popup>
@@ -118,6 +151,43 @@ export default function MapView({ routeCoords, repeaters, selectedRepeater, onRe
           </CircleMarker>
         )
       })}
+
+      {/* Picker popup for colocated repeaters */}
+      {picker && (
+        <Popup
+          position={[picker.lat, picker.lon]}
+          onClose={() => setPicker(null)}
+          autoPan={true}
+        >
+          <div style={{ minWidth: 180 }}>
+            <div style={{ fontSize: 11, color: '#94a3b8', fontWeight: 600, marginBottom: 6, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+              {picker.group.length} repeaters at this site
+            </div>
+            {picker.group.map(r => (
+              <button
+                key={r.id}
+                onClick={() => { setPicker(null); onRepeaterClick(r) }}
+                style={{
+                  display: 'flex', alignItems: 'center', gap: 6,
+                  width: '100%', textAlign: 'left',
+                  padding: '5px 4px', borderRadius: 4, border: 'none',
+                  background: 'none', cursor: 'pointer',
+                }}
+                onMouseEnter={e => e.currentTarget.style.background = '#f1f5f9'}
+                onMouseLeave={e => e.currentTarget.style.background = 'none'}
+              >
+                <span style={{
+                  width: 8, height: 8, borderRadius: '50%', flexShrink: 0,
+                  background: BAND_COLOR[r.band] ?? '#8b5cf6',
+                }} />
+                <span style={{ fontWeight: 700, fontSize: 13 }}>{r.callsign}</span>
+                <span style={{ fontFamily: 'monospace', fontSize: 11, color: '#475569' }}>{r.frequency.toFixed(4)}</span>
+                <span style={{ fontSize: 10, color: '#94a3b8', marginLeft: 'auto' }}>{r.mode}</span>
+              </button>
+            ))}
+          </div>
+        </Popup>
+      )}
     </MapContainer>
   )
 }
