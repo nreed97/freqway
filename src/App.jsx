@@ -149,14 +149,22 @@ export default function App() {
     <div className="flex flex-col h-screen bg-slate-900 text-white overflow-hidden">
       {/* Header */}
       <header className="flex items-center gap-3 px-4 py-3 bg-slate-800 border-b border-slate-700 shrink-0">
-        <div className="flex items-center gap-2">
-          <svg className="w-7 h-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-            <path d="M12 2L2 7l10 5 10-5-10-5z" />
-            <path d="M2 17l10 5 10-5M2 12l10 5 10-5" />
+        <a href="/" className="flex items-center gap-2 group no-underline">
+          <svg className="w-7 h-7 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+            {/* Mast */}
+            <line x1="12" y1="22" x2="12" y2="3"/>
+            {/* Dipole */}
+            <line x1="7" y1="9" x2="17" y2="9"/>
+            {/* RF waves left */}
+            <path d="M9 13 Q6.5 9 9 5"/>
+            <path d="M6.5 15 Q3 9 6.5 3"/>
+            {/* RF waves right */}
+            <path d="M15 13 Q17.5 9 15 5"/>
+            <path d="M17.5 15 Q21 9 17.5 3"/>
           </svg>
-          <span className="text-xl font-bold tracking-tight text-white">Freqway</span>
+          <span className="text-xl font-bold tracking-tight text-white group-hover:text-blue-300 transition-colors">Freqway</span>
           <span className="text-xs text-slate-400 font-normal hidden sm:block">Ham Radio Repeater Route Planner</span>
-        </div>
+        </a>
         <div className="ml-auto flex items-center gap-1">
           {route && (
             <button

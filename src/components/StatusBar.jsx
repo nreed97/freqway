@@ -1,4 +1,9 @@
+/* global __BUILD_TIME__ */
 import { fmtMiles, fmtDuration } from '../utils/geo.js'
+
+const BUILD_DATE = new Date(__BUILD_TIME__).toLocaleDateString('en-US', {
+  month: 'short', day: 'numeric', year: 'numeric', timeZone: 'UTC',
+})
 
 export default function StatusBar({ route, repeaterCount, status }) {
   return (
@@ -21,6 +26,8 @@ export default function StatusBar({ route, repeaterCount, status }) {
         Map: <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">OpenStreetMap</a>
         {' · '}
         <a href="https://github.com/nreed97/freqway" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">GitHub</a>
+        {' · '}
+        <span title="Deploy timestamp">Deployed {BUILD_DATE}</span>
       </span>
     </div>
   )
