@@ -37,8 +37,9 @@ export default function HelpModal({ onClose }) {
             </h3>
             <p className="ml-7 text-slate-400">
               Type a city, address, or <span className="font-mono text-slate-300">lat,lon</span> pair in the <strong className="text-white">Start</strong> and <strong className="text-white">End</strong> fields.
-              Autocomplete suggestions appear as you type — click one to select it. Then choose a
-              <strong className="text-white"> corridor width</strong> (how far off the route to search) and press <strong className="text-white">Find Repeaters</strong>.
+              Autocomplete suggestions appear as you type — click one to select it. Tap the
+              <strong className="text-white"> crosshair icon</strong> in the Start field to auto-fill your current GPS location.
+              Then choose a <strong className="text-white">corridor width</strong> (how far off the route to search) and press <strong className="text-white">Find Repeaters</strong>.
             </p>
           </section>
 
@@ -48,7 +49,7 @@ export default function HelpModal({ onClose }) {
               Read the repeater list
             </h3>
             <div className="ml-7 space-y-2 text-slate-400">
-              <p>Repeaters are listed <strong className="text-white">start → end</strong> by route mile so the next one you need is always below the current one as you travel.</p>
+              <p>Repeaters are listed <strong className="text-white">start → end</strong> by route mile so the next one you need is always below the current one as you travel. State dividers appear automatically when the route crosses a state line.</p>
               <div className="flex flex-wrap gap-3 mt-2">
                 <Chip color="bg-blue-500" label="2m" />
                 <Chip color="bg-amber-500" label="70cm" />
@@ -58,7 +59,7 @@ export default function HelpModal({ onClose }) {
                 <Chip color="bg-cyan-500" label="23cm" />
                 <Chip color="bg-violet-500" label="other" />
               </div>
-              <p className="mt-2">Each row shows: callsign · frequency · offset · tone · distance off route · route mile marker.</p>
+              <p className="mt-2">Each row shows: callsign · frequency · offset · tone · distance off route · route mile marker. The small <strong className="text-white">↗ icon</strong> next to the callsign opens HearHam.com for full trustee and status details.</p>
               <p>Use the <strong className="text-white">search box</strong> to filter by callsign or city.</p>
             </div>
           </section>
@@ -101,10 +102,24 @@ export default function HelpModal({ onClose }) {
             </div>
           </section>
 
+          <section>
+            <h3 className="text-white font-semibold mb-2 flex items-center gap-2">
+              <span className="w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold shrink-0">6</span>
+              Mobile use
+            </h3>
+            <p className="ml-7 text-slate-400">
+              On a phone or small screen, use the <strong className="text-white">tab bar</strong> at the bottom to switch between
+              <strong className="text-white"> Route</strong> (plan your trip),
+              <strong className="text-white"> Repeaters</strong> (browse the list), and
+              <strong className="text-white"> Map</strong>. The app switches to the Repeaters tab automatically when results load.
+            </p>
+          </section>
+
           <section className="border-t border-slate-700 pt-4">
             <h3 className="text-white font-semibold mb-2">Tips</h3>
             <ul className="space-y-1 text-slate-400 list-disc list-inside">
               <li>The repeater database is cached locally for 24 hours — subsequent searches load instantly.</li>
+              <li>Band buttons show the number of repeaters in corridor (e.g. <strong className="text-white">2m (14)</strong>) once a route is loaded.</li>
               <li>Press <kbd className="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-xs font-mono">Esc</kbd> to close this dialog.</li>
               <li>Corridor width affects search time only on first load; filtering is instant after that.</li>
               <li>Repeater data sourced from <a href="https://hearham.com" target="_blank" rel="noopener" className="text-blue-400 underline hover:text-blue-300">HearHam.com</a>.</li>

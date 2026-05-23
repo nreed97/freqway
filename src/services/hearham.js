@@ -50,6 +50,7 @@ function normalizeRepeater(r) {
     mode: modeFromStr(r.mode),
     operational: r.operational === 1,
     use: r.restriction ? 'MEMBERS' : 'OPEN',
+    state: r.state ?? '',
     notes: r.description ?? '',
     irlp: r.irlp_node ?? r.irlp ?? null,
     echolink: r.echolink_node ?? r.echolink ?? null,

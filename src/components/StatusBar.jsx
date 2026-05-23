@@ -19,6 +19,8 @@ export default function StatusBar({ route, repeaterCount, status }) {
         Data: <a href="https://hearham.com" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">HearHam.com</a>
         {' · '}
         Map: <a href="https://www.openstreetmap.org" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">OpenStreetMap</a>
+        {' · '}
+        <a href="https://github.com/nreed97/freqway" target="_blank" rel="noopener noreferrer" className="underline hover:text-slate-300">GitHub</a>
       </span>
     </div>
   )

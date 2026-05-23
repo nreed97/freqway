@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import AddressInput from './AddressInput.jsx'
+import { reverseGeocodeCity } from '../services/geocoding.js'
 
 const CORRIDOR_OPTIONS = [5, 10, 25, 50]
 
@@ -60,6 +61,7 @@ export default function RouteInput({ onSearch, loading }) {
   const [stops,      setStops]      = useState(init.current.stops)
   const [corridor,   setCorridor]   = useState(init.current.corridor)
   const [dragOverIdx, setDragOverIdx] = useState(null)
+  const [locating, setLocating] = useState(false)
   const dragIdx = useRef(null)
 
   // Auto-search on mount if URL has a route pre-loaded
@@ -120,6 +122,31 @@ export default function RouteInput({ onSearch, loading }) {
     setDragOverIdx(null)
   }
 
+  // ── Near-me ───────────────────────────────────────────────────────────────
+  function handleLocate() {
+    if (!navigator.geolocation || locating) return
+    setLocating(true)
+    navigator.geolocation.getCurrentPosition(
+      async ({ coords }) => {
+        try {
+          const label = await reverseGeocodeCity(coords.latitude, coords.longitude)
+          setStart({
+            value: label ?? `${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`,
+            coord: { lat: coords.latitude, lon: coords.longitude },
+          })
+        } catch {
+          setStart({
+            value: `${coords.latitude.toFixed(5)},${coords.longitude.toFixed(5)}`,
+            coord: { lat: coords.latitude, lon: coords.longitude },
+          })
+        }
+        setLocating(false)
+      },
+      () => setLocating(false),
+      { timeout: 10000 }
+    )
+  }
+
   // ── Submit ─────────────────────────────────────────────────────────────────
   function handleSubmit(e) {
     e.preventDefault()
@@ -139,6 +166,8 @@ export default function RouteInput({ onSearch, loading }) {
           onChange={v => setStart({ value: v, coord: null })}
           onSelect={c => setStart(s => ({ ...s, coord: c }))}
           disabled={loading}
+          onLocate={handleLocate}
+          locating={locating}
         />
       </StopRow>
 

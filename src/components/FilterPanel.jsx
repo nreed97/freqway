@@ -11,7 +11,7 @@ const BAND_COLORS = {
   'other': 'bg-violet-500',
 }
 
-export default function FilterPanel({ filters, onChange }) {
+export default function FilterPanel({ filters, onChange, bandCounts = {} }) {
   function toggleBand(band) {
     const next = filters.bands.includes(band)
       ? filters.bands.filter(b => b !== band)
@@ -44,6 +44,9 @@ export default function FilterPanel({ filters, onChange }) {
             >
               <span className={`w-2 h-2 rounded-full ${BAND_COLORS[band] ?? 'bg-slate-500'}`} />
               {band}
+              {bandCounts[band] != null && (
+                <span className="text-[10px] opacity-60">({bandCounts[band]})</span>
+              )}
             </button>
           ))}
         </div>

@@ -11,9 +11,13 @@ Plan a driving route and instantly find every repeater along the way, sorted sta
 ## Features
 
 - **Route-aware search** — enter any two cities, addresses, or lat/lon pairs and get all repeaters within a configurable corridor (5 / 10 / 25 / 50 mi)
+- **Near-me button** — tap the crosshair icon in the Start field to auto-fill your current GPS location
 - **Sorted by route mile** — list goes start → end so you never scroll the wrong direction mid-drive
-- **Band & mode filters** — toggle 2m, 70cm, 1.25m, 10m, 6m, 23cm and FM / DMR / P25 / Fusion / D-STAR / NXDN independently
+- **State dividers** — automatic section headers when the route crosses a state line
+- **Band & mode filters** — toggle 2m, 70cm, 1.25m, 10m, 6m, 23cm and FM / DMR / P25 / Fusion / D-STAR / NXDN independently; band buttons show the repeater count for the current corridor
+- **HearHam links** — every repeater row has a quick-link icon to HearHam.com for trustee and status lookup
 - **Map integration** — colored dots by band; click any dot or list row to see full details and pan the map
+- **Mobile-friendly** — tabbed Route / Repeaters / Map layout on small screens
 - **Export to radio** — one-click CSV export for CHIRP, RT Systems, or a generic human-readable format
 - **Fast** — repeater database cached locally for 24 hours; subsequent searches skip the download entirely
 - **No API key required** — data sourced from [HearHam.com](https://hearham.com) (13 000+ US repeaters)
@@ -150,14 +154,14 @@ Click the **Help** button in the top-right corner of the app for step-by-step in
 
 ### 1 — Enter your route
 
-Type a city, address, or `lat,lon` in the **Start** and **End** fields. Autocomplete suggestions appear as you type — click one to confirm. Select a **Corridor width** (how far off the highway to search) then press **Find Repeaters**.
+Type a city, address, or `lat,lon` in the **Start** and **End** fields. Autocomplete suggestions appear as you type — click one to confirm. Tap the **crosshair icon** inside the Start field to auto-fill your current GPS location. Select a **Corridor width** (how far off the highway to search) then press **Find Repeaters**.
 
 ### 2 — Read the list
 
-Repeaters appear sorted **start → end** by route mile. Each row shows:
+Repeaters appear sorted **start → end** by route mile. State dividers are inserted automatically when the route crosses a state line. Each row shows:
 
 - **Colored dot** — band (blue = 2m, amber = 70cm, green = 1.25m, red = 10m, pink = 6m, cyan = 23cm, purple = other)
-- **Callsign** and mode badge
+- **Callsign**, mode badge, and a **↗ icon** to open HearHam.com for trustee/status details
 - **Frequency** and offset
 - **Tone** (PL/CTCSS or DCS code)
 - **Distance off route** and **route mile marker**
@@ -170,11 +174,15 @@ Click any dot on the map or any row in the list to open the detail popup. Select
 
 ### 4 — Filter
 
-Toggle **bands** and **modes** in the Filters panel. Use **Operational only** to hide machines marked offline and **Open use only** to hide members-only repeaters.
+Toggle **bands** and **modes** in the Filters panel. Band buttons show the count of repeaters in the current corridor (e.g. **2m (14)**) so you can see what's available before toggling. Use **Operational only** to hide machines marked offline and **Open use only** to hide members-only repeaters.
 
 ### 5 — Export
 
 Click **Export ▾** above the list, choose a format, and the file downloads immediately. Load it into CHIRP or RT Systems to program your radio before you leave.
+
+### On mobile
+
+Use the **tab bar** at the bottom of the screen to switch between **Route** (plan your trip and adjust filters), **Repeaters** (browse and export the list), and **Map**. The app switches to the Repeaters tab automatically when results load.
 
 ---
 

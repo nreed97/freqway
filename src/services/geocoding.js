@@ -137,6 +137,17 @@ function buildPhotonDisplay(p) {
     .join(', ')
 }
 
+// Photon reverse geocode — returns city, state string for a coordinate.
+export async function reverseGeocodeCity(lat, lon) {
+  const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=en`
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`Reverse geocoding failed: ${res.status}`)
+  const props = (await res.json()).features?.[0]?.properties ?? {}
+  const city = props.city ?? props.name ?? props.county ?? null
+  const state = props.state ?? null
+  return [city, state].filter(Boolean).join(', ') || null
+}
+
 // Photon reverse geocode — used for state detection along route.
 export async function reverseGeocode(lat, lon) {
   const url = `https://photon.komoot.io/reverse?lat=${lat}&lon=${lon}&limit=1&lang=en`

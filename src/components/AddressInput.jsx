@@ -11,7 +11,7 @@ function useDebounce(value, delay) {
   return debounced
 }
 
-export default function AddressInput({ label, value, onChange, onSelect, disabled, placeholder }) {
+export default function AddressInput({ label, value, onChange, onSelect, disabled, placeholder, onLocate, locating }) {
   const [suggestions, setSuggestions] = useState([])
   const [open, setOpen] = useState(false)
   const [cursor, setCursor] = useState(-1)
@@ -122,11 +122,24 @@ export default function AddressInput({ label, value, onChange, onSelect, disable
           autoComplete="off"
           className="w-full bg-slate-700 border border-slate-600 rounded-md px-3 py-2 text-sm text-white placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-blue-500 pr-7"
         />
-        {fetching && (
+        {(fetching || locating) ? (
           <div className="absolute right-2.5 top-1/2 -translate-y-1/2">
             <div className="w-3.5 h-3.5 border-2 border-blue-400 border-t-transparent rounded-full animate-spin" />
           </div>
-        )}
+        ) : onLocate ? (
+          <button
+            type="button"
+            onClick={onLocate}
+            disabled={disabled}
+            title="Use my location"
+            className="absolute right-2 top-1/2 -translate-y-1/2 text-slate-400 hover:text-blue-400 transition-colors disabled:opacity-40"
+          >
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="12" cy="12" r="3"/>
+              <path d="M12 1v4M12 19v4M1 12h4M19 12h4"/>
+            </svg>
+          </button>
+        ) : null}
       </div>
 
       {open && (

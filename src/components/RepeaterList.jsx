@@ -50,17 +50,38 @@ export default function RepeaterList({ repeaters, onSelect, selectedId }) {
         {filtered.length === 0 && (
           <p className="text-center text-slate-500 text-sm py-8">No repeaters match your filters.</p>
         )}
-        {filtered.map(r => (
-          <RepeaterRow
-            key={r.id}
-            repeater={r}
-            selected={r.id === selectedId}
-            onClick={() => onSelect(r)}
-          />
-        ))}
+        {buildItems(filtered).map(item =>
+          item.type === 'divider' ? (
+            <div key={item.key} className="flex items-center gap-2 px-1 py-1.5 mt-1">
+              <div className="flex-1 h-px bg-slate-700" />
+              <span className="text-[10px] font-semibold text-slate-500 uppercase tracking-wider">{item.state}</span>
+              <div className="flex-1 h-px bg-slate-700" />
+            </div>
+          ) : (
+            <RepeaterRow
+              key={item.key}
+              repeater={item.data}
+              selected={item.data.id === selectedId}
+              onClick={() => onSelect(item.data)}
+            />
+          )
+        )}
       </div>
     </div>
   )
+}
+
+function buildItems(repeaters) {
+  const items = []
+  let currentState = null
+  for (const r of repeaters) {
+    if (r.state && r.state !== currentState) {
+      items.push({ type: 'divider', state: r.state, key: `divider-${r.state}-${r.id}` })
+      currentState = r.state
+    }
+    items.push({ type: 'repeater', data: r, key: r.id })
+  }
+  return items
 }
 
 function RepeaterRow({ repeater: r, selected, onClick }) {
@@ -85,6 +106,20 @@ function RepeaterRow({ repeater: r, selected, onClick }) {
           }`}>
             {r.mode}
           </span>
+          <a
+            href="https://hearham.com"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={e => e.stopPropagation()}
+            title="Look up on HearHam.com"
+            className="shrink-0 text-slate-600 hover:text-slate-400 transition-colors"
+          >
+            <svg className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6"/>
+              <polyline points="15 3 21 3 21 9"/>
+              <line x1="10" y1="14" x2="21" y2="3"/>
+            </svg>
+          </a>
         </div>
         <div className="text-right shrink-0">
           <div className="text-xs font-mono text-white">{r.frequency.toFixed(4)}</div>
