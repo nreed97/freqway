@@ -49,10 +49,11 @@ if $SSL && ! command -v certbot &>/dev/null; then
 fi
 
 # ── Clone or update repo ─────────────────────────────────────────────────────
-if [[ -d "$REPO_DIR/.git" ]]; then
+if git -C "$REPO_DIR" rev-parse --git-dir &>/dev/null 2>&1; then
   echo "==> Updating repo..."
   git -C "$REPO_DIR" pull
 else
+  [[ -d "$REPO_DIR" ]] && rm -rf "$REPO_DIR"
   echo "==> Cloning repo..."
   git clone "$REPO" "$REPO_DIR"
 fi
