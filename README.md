@@ -4,6 +4,8 @@
 
 Plan a driving route and instantly find every repeater along the way, sorted start-to-end so the next machine you need is always at the top of the list.
 
+> **Disclaimer:** This project is entirely AI-coded. It was built using AI-assisted development tools with no hand-written source code.
+
 ![Freqway with a route loaded](docs/screenshots/02-route-loaded.png)
 
 ---
@@ -11,14 +13,18 @@ Plan a driving route and instantly find every repeater along the way, sorted sta
 ## Features
 
 - **Route-aware search** — enter any two cities, addresses, or lat/lon pairs and get all repeaters within a configurable corridor (5 / 10 / 25 / 50 mi)
+- **Multi-stop routes** — add intermediate waypoints between start and end; drag handles let you reorder stops on the fly
 - **Near-me button** — tap the crosshair icon in the Start field to auto-fill your current GPS location
 - **Sorted by route mile** — list goes start → end so you never scroll the wrong direction mid-drive
 - **State dividers** — automatic section headers when the route crosses a state line
-- **Band & mode filters** — toggle 2m, 70cm, 1.25m, 10m, 6m, 23cm and FM / DMR / P25 / Fusion / D-STAR / NXDN independently; band buttons show the repeater count for the current corridor
+- **Callsign / city search** — live filter box narrows the repeater list by callsign or city name without re-fetching
+- **Band & mode filters** — toggle 2m, 70cm, 1.25m, 10m, 6m, 23cm, other and FM / DMR / P25 / Fusion / D-STAR / NXDN independently; band buttons show the repeater count for the current corridor
 - **HearHam links** — every repeater row has a quick-link icon to HearHam.com for trustee and status lookup
 - **Map integration** — colored dots by band; click any dot or list row to see full details and pan the map
 - **Mobile-friendly** — tabbed Route / Repeaters / Map layout on small screens
 - **Export to radio** — one-click CSV export for CHIRP, RT Systems, or a generic human-readable format
+- **Shareable links** — after a search, click **Share** to copy a URL that encodes your exact route; opening it auto-runs the search
+- **Clear button** — resets the route, form, and map back to the empty state in one click
 - **Fast** — repeater database cached locally for 24 hours; subsequent searches skip the download entirely
 - **No API key required** — data sourced from [HearHam.com](https://hearham.com) (13 000+ US repeaters)
 
@@ -154,7 +160,7 @@ Click the **Help** button in the top-right corner of the app for step-by-step in
 
 ### 1 — Enter your route
 
-Type a city, address, or `lat,lon` in the **Start** and **End** fields. Autocomplete suggestions appear as you type — click one to confirm. Tap the **crosshair icon** inside the Start field to auto-fill your current GPS location. Select a **Corridor width** (how far off the highway to search) then press **Find Repeaters**.
+Type a city, address, or `lat,lon` in the **Start** and **End** fields. Autocomplete suggestions appear as you type — click one to confirm. Tap the **crosshair icon** inside the Start field to auto-fill your current GPS location. Click **+ Add stop** to insert intermediate waypoints; drag the grip handle next to any stop to reorder it. Select a **Corridor width** (how far off the highway to search) then press **Find Repeaters**. Click **Clear** to reset everything back to the empty state.
 
 ### 2 — Read the list
 
@@ -166,7 +172,7 @@ Repeaters appear sorted **start → end** by route mile. State dividers are inse
 - **Tone** (PL/CTCSS or DCS code)
 - **Distance off route** and **route mile marker**
 
-Use the search box to filter by callsign or city name.
+Use the search box to filter by callsign or city name in real time. Click **Share** in the header to copy a URL encoding your current route — anyone who opens it will see the same search auto-run.
 
 ### 3 — Interact with the map
 
