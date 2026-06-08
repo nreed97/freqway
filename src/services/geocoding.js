@@ -19,7 +19,7 @@ function cityStateFromAddress(q) {
 }
 
 async function nominatimSearch(q) {
-  const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us`
+  const url = `${NOMINATIM}/search?q=${encodeURIComponent(q)}&format=json&limit=1&countrycodes=us,ca`
   const res = await fetch(url, { headers: HEADERS })
   if (!res.ok) throw new Error(`Geocoding failed: ${res.status}`)
   return res.json()
@@ -45,7 +45,7 @@ export async function geocode(query) {
 
   if (!data.length) {
     log.warn('geocoding', `No results for "${q}"`)
-    throw new Error(`No results found for "${q}". Try adding a state abbreviation, e.g. "Vancouver, WA".`)
+    throw new Error(`No results found for "${q}". Try adding a state or province, e.g. "Vancouver, BC" or "Vancouver, WA".`)
   }
 
   const result = { lat: parseFloat(data[0].lat), lon: parseFloat(data[0].lon), display: data[0].display_name }
@@ -59,12 +59,11 @@ export async function geocode(query) {
 // city/state tail when we detect a house-number prefix.
 
 const PHOTON = 'https://photon.komoot.io/api'
-// Bounding box: all US states incl. Alaska/Hawaii. Eastern cap at -66 keeps
-// out European results that share place names with US cities.
-const US_BBOX = '-180,18,-66,72'
-// Geographic centre of contiguous US — biases results toward US when the
-// place name is ambiguous (Vancouver → WA, not BC or UK).
-const US_BIAS = 'lat=39.5&lon=-98.35'
+// Bounding box: North America (US + Canada). Eastern cap at -52 covers all
+// Canadian Maritime provinces; countrycode filter prevents European results.
+const NA_BBOX = '-180,18,-52,84'
+// Geographic centre of North America — biases results appropriately.
+const NA_BIAS = 'lat=54.0&lon=-96.0'
 
 function photonRank(p) {
   const v = p.osm_value ?? ''
@@ -83,7 +82,7 @@ export async function geocodeSuggest(query) {
   // query the city/state tail so we still return useful place suggestions.
   const photonQ = cityStateFromAddress(q) ?? q
 
-  const url = `${PHOTON}/?q=${encodeURIComponent(photonQ)}&limit=10&lang=en&bbox=${US_BBOX}&${US_BIAS}`
+  const url = `${PHOTON}/?q=${encodeURIComponent(photonQ)}&limit=10&lang=en&bbox=${NA_BBOX}&${NA_BIAS}`
   log.debug('geocoding', `suggest("${photonQ}") via Photon`)
 
   try {
@@ -94,7 +93,7 @@ export async function geocodeSuggest(query) {
     log.debug('geocoding', `suggest → ${features.length} raw results`)
 
     return features
-      .filter(f => f.properties?.countrycode === 'US')
+      .filter(f => ['US', 'CA'].includes((f.properties?.countrycode ?? '').toUpperCase()))
       .sort((a, b) => photonRank(a.properties) - photonRank(b.properties))
       .slice(0, 6)
       .map(f => {
@@ -132,7 +131,8 @@ function buildPhotonShort(p) {
 }
 
 function buildPhotonDisplay(p) {
-  return [p.name, p.housenumber, p.street, p.city ?? p.county, p.state, 'USA']
+  const country = (p.countrycode ?? '').toUpperCase() === 'CA' ? 'Canada' : 'USA'
+  return [p.name, p.housenumber, p.street, p.city ?? p.county, p.state, country]
     .filter(Boolean)
     .join(', ')
 }

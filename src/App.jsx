@@ -7,7 +7,7 @@ import StatusBar from './components/StatusBar.jsx'
 import HelpModal from './components/HelpModal.jsx'
 import { geocode } from './services/geocoding.js'
 import { fetchRoute } from './services/routing.js'
-import { fetchAllUSRepeaters } from './services/hearham.js'
+import { fetchAllRepeaters } from './services/hearham.js'
 import { filterByCorridorAndAnnotate } from './utils/corridorFilter.js'
 import log from './utils/logger.js'
 
@@ -115,7 +115,7 @@ export default function App() {
       setRoute(routeData)
 
       setStatus('Loading repeater database…')
-      const raw = await fetchAllUSRepeaters(msg => setStatus(msg))
+      const raw = await fetchAllRepeaters(msg => setStatus(msg))
 
       setStatus('Filtering to corridor…')
       const annotated = filterByCorridorAndAnnotate(raw, routeData.coords, corridor)
