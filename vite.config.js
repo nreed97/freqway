@@ -15,12 +15,6 @@ export default defineConfig({
   },
   server: {
     proxy: {
-      '/api/repeaterbook': {
-        target: 'https://www.repeaterbook.com',
-        changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api\/repeaterbook/, '/api/export.php'),
-        secure: true,
-      },
       '/api/nominatim': {
         target: 'https://nominatim.openstreetmap.org',
         changeOrigin: true,

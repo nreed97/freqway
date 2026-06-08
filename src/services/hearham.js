@@ -1,7 +1,7 @@
 import log from '../utils/logger.js'
 
 const HEARHAM_URL = '/api/hearham'
-const CACHE_KEY = 'freqway_hearham_us_v2'
+const CACHE_KEY = 'freqway_hearham_v3'
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000
 
 let _memCache = null
@@ -27,7 +27,7 @@ function readCache() {
 function writeCache(data) {
   try {
     localStorage.setItem(CACHE_KEY, JSON.stringify({ ts: Date.now(), data }))
-    log.debug('hearham', `cached ${data.length} US repeaters`)
+    log.debug('hearham', `cached ${data.length} repeaters`)
   } catch (err) {
     log.warn('hearham', 'localStorage quota exceeded — skipping cache', err)
   }
@@ -79,7 +79,7 @@ function modeFromStr(mode) {
   return 'FM'
 }
 
-export async function fetchAllUSRepeaters(onProgress) {
+export async function fetchAllRepeaters(onProgress) {
   if (_memCache) {
     log.debug('hearham', `memory cache hit (${_memCache.length} repeaters)`)
     return _memCache
@@ -101,12 +101,9 @@ export async function fetchAllUSRepeaters(onProgress) {
 
   const raw = await res.json()
   done({ total: raw.length })
-  log.info('hearham', `received ${raw.length} repeaters, filtering to US`)
 
-  // K/N/W callsign prefixes are exclusively US amateur radio allocations
-  const usRaw = raw.filter(r => /^[KNW]/i.test(r.callsign ?? ''))
-  const normalized = usRaw.map(normalizeRepeater)
-  log.info('hearham', `US repeaters: ${normalized.length}`)
+  const normalized = raw.map(normalizeRepeater)
+  log.info('hearham', `normalized ${normalized.length} repeaters`)
 
   _memCache = normalized
   writeCache(normalized)
