@@ -11,7 +11,7 @@ const NS_COLORS = {
   geocoding:     '#60a5fa',
   routing:       '#34d399',
   stateDetect:   '#a78bfa',
-  repeaterbook:  '#fb923c',
+  hearham:       '#fb923c',
   corridor:      '#f472b6',
   app:           '#94a3b8',
 }

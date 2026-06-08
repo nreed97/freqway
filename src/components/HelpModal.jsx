@@ -40,6 +40,7 @@ export default function HelpModal({ onClose }) {
               Autocomplete suggestions appear as you type — click one to select it. Tap the
               <strong className="text-white"> crosshair icon</strong> in the Start field to auto-fill your current GPS location.
               Then choose a <strong className="text-white">corridor width</strong> (how far off the route to search) and press <strong className="text-white">Find Repeaters</strong>.
+              Both US and Canadian locations are supported (e.g. <span className="font-mono text-slate-300">Vancouver, BC</span>).
             </p>
           </section>
 
@@ -49,7 +50,7 @@ export default function HelpModal({ onClose }) {
               Read the repeater list
             </h3>
             <div className="ml-7 space-y-2 text-slate-400">
-              <p>Repeaters are listed <strong className="text-white">start → end</strong> by route mile so the next one you need is always below the current one as you travel. State dividers appear automatically when the route crosses a state line.</p>
+              <p>Repeaters are listed <strong className="text-white">start → end</strong> by route mile so the next one you need is always below the current one as you travel. State and province dividers appear automatically when the route crosses a boundary.</p>
               <div className="flex flex-wrap gap-3 mt-2">
                 <Chip color="bg-blue-500" label="2m" />
                 <Chip color="bg-amber-500" label="70cm" />
@@ -119,6 +120,7 @@ export default function HelpModal({ onClose }) {
             <h3 className="text-white font-semibold mb-2">Tips</h3>
             <ul className="space-y-1 text-slate-400 list-disc list-inside">
               <li>The repeater database is cached locally for 24 hours — subsequent searches load instantly.</li>
+              <li>Canadian repeaters (VE/VA call signs) are included — enter Canadian cities or provinces just like US destinations.</li>
               <li>Band buttons show the number of repeaters in corridor (e.g. <strong className="text-white">2m (14)</strong>) once a route is loaded.</li>
               <li>Press <kbd className="bg-slate-700 text-slate-200 px-1.5 py-0.5 rounded text-xs font-mono">Esc</kbd> to close this dialog.</li>
               <li>Corridor width affects search time only on first load; filtering is instant after that.</li>
