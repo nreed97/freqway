@@ -85,11 +85,23 @@ docker run -d -p 8080:8080 --restart unless-stopped --name freqway freqway
 
 Open [http://localhost:8080](http://localhost:8080). The container serves plain HTTP on port 8080 and runs nginx as a non-root user. Set `FREQWAY_PORT` to change the host port in compose. For HTTPS, put a reverse proxy in front of it (Caddy, Traefik, or nginx with certbot). To update, run `git pull && docker compose up -d --build`.
 
+**Settings:** run `cp .env.example .env` and edit the values. Every setting is optional, and both compose files read them:
+
+| Variable | Default | Used for |
+|---|---|---|
+| `FREQWAY_PORT` | `8080` | Host port |
+| `FREQWAY_REF` | `main` | Branch, tag or commit to build (Arcane compose only) |
+| `NOMINATIM_USER_AGENT` | `Freqway/1.0 (ham radio route planner)` | User-Agent sent to the geocoder. Nominatim's policy asks you to identify your instance, so add your contact details |
+| `NODE_VERSION` | `22` | Node base image (build arg) |
+| `NGINX_VERSION` | `stable` | nginx base image (build arg) |
+
+Without compose, pass them yourself: `docker build --build-arg NODE_VERSION=22 -t freqway .` and `docker run -e NOMINATIM_USER_AGENT="Freqway/1.0 (you@example.com)" ...`.
+
 ### Arcane
 
 The root `Dockerfile` works with [Arcane](https://getarcane.app) as-is. There are two ways to use it:
 
-- **As a project:** create a new project in Arcane and paste in [`deploy/arcane/compose.yaml`](deploy/arcane/compose.yaml). It builds straight from this GitHub repo, so you don't need to clone anything. Set `FREQWAY_PORT` to change the host port (the default is 8080).
+- **As a project:** create a new project in Arcane and paste in [`deploy/arcane/compose.yaml`](deploy/arcane/compose.yaml). It builds straight from this GitHub repo, so you don't need to clone anything. Put any settings from `.env.example` in the project's `.env`.
 - **With the image builder:** point Arcane's image builder at this repo. The defaults (repo root, `Dockerfile`) are correct.
 
 ### Linux VPS (nginx)

@@ -1,17 +1,22 @@
 # Freqway — Arcane project
 #
 # Paste this into a new Arcane project (or point Arcane at this file in the
-# repo). Docker builds straight from GitHub, so no clone is needed. Change
-# "#main" to pin a branch, tag or commit.
+# repo). Docker builds straight from GitHub, so no clone is needed. Set
+# FREQWAY_REF to pin a branch, tag or commit; see .env.example for all settings.
 name: freqway
 
 services:
   freqway:
     build:
-      context: https://github.com/nreed97/freqway.git#main
+      context: https://github.com/nreed97/freqway.git#${FREQWAY_REF:-main}
+      args:
+        NODE_VERSION: ${NODE_VERSION:-22}
+        NGINX_VERSION: ${NGINX_VERSION:-stable}
     image: freqway:latest
     pull_policy: build   # always build locally; this image is not on a registry
     container_name: freqway
     ports:
       - "${FREQWAY_PORT:-8080}:8080"
+    environment:
+      NOMINATIM_USER_AGENT: ${NOMINATIM_USER_AGENT:-Freqway/1.0 (ham radio route planner)}
     restart: unless-stopped
