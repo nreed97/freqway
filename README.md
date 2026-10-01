@@ -85,6 +85,13 @@ docker run -d -p 8080:80 --restart unless-stopped --name freqway freqway
 
 Open [http://localhost:8080](http://localhost:8080). The container serves plain HTTP on port 80. For HTTPS, put a reverse proxy in front of it (Caddy, Traefik, or nginx with certbot). To update, run `git pull && docker compose up -d --build`.
 
+### Arcane
+
+[`deploy/arcane/`](deploy/arcane) has a separate Dockerfile for [Arcane](https://getarcane.app). It runs nginx as a non-root user on port 8080. There are two ways to use it:
+
+- **As a project:** create a new project in Arcane and paste in [`deploy/arcane/compose.yaml`](deploy/arcane/compose.yaml). It builds straight from this GitHub repo, so you don't need to clone anything. Set `FREQWAY_PORT` to change the host port (the default is 8080).
+- **With the image builder:** point Arcane's image builder at this repo, leave the build context as the repo root, and set the Dockerfile path to `deploy/arcane/Dockerfile`.
+
 ### Linux VPS (nginx)
 
 ```bash

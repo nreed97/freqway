@@ -1,0 +1,17 @@
+# Freqway — Arcane project
+#
+# Paste this into a new Arcane project (or point Arcane at this file in the
+# repo). Docker builds straight from GitHub, so no clone is needed. Change
+# "#main" to pin a branch, tag or commit.
+name: freqway
+
+services:
+  freqway:
+    build:
+      context: https://github.com/nreed97/freqway.git#main
+      dockerfile: deploy/arcane/Dockerfile
+    image: freqway:latest
+    container_name: freqway
+    ports:
+      - "${FREQWAY_PORT:-8080}:8080"
+    restart: unless-stopped
