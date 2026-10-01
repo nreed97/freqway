@@ -9,7 +9,6 @@ services:
   freqway:
     build:
       context: https://github.com/nreed97/freqway.git#main
-      dockerfile: deploy/arcane/Dockerfile
     image: freqway:latest
     container_name: freqway
     ports:
