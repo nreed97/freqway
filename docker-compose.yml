@@ -5,6 +5,7 @@ services:
   freqway:
     build: .
     image: freqway:latest
+    pull_policy: build   # always build locally; this image is not on a registry
     container_name: freqway
     ports:
       - "${FREQWAY_PORT:-8080}:8080"
