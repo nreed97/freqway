@@ -70,6 +70,21 @@ That's it. Vercel handles the HearHam API proxy via `vercel.json` automatically,
 
 > **One-click deploy:** click the button at the top of this README to clone + deploy in one step.
 
+### Docker
+
+The included [`Dockerfile`](Dockerfile) builds the site and serves it with nginx, reusing [`deploy/nginx.conf`](deploy/nginx.conf), so the API proxies work the same way they do on a VPS.
+
+```bash
+git clone https://github.com/nreed97/freqway.git
+cd freqway
+docker compose up -d --build
+# or, without compose:
+docker build -t freqway .
+docker run -d -p 8080:80 --restart unless-stopped --name freqway freqway
+```
+
+Open [http://localhost:8080](http://localhost:8080). The container serves plain HTTP on port 80. For HTTPS, put a reverse proxy in front of it (Caddy, Traefik, or nginx with certbot). To update, run `git pull && docker compose up -d --build`.
+
 ### Linux VPS (nginx)
 
 ```bash

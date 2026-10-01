@@ -1,0 +1,11 @@
+# Example: docker compose up -d
+# Then open http://localhost:8080 (change the host port as needed, or put a
+# TLS-terminating reverse proxy such as Caddy/Traefik in front of it).
+services:
+  freqway:
+    build: .
+    image: freqway:latest
+    container_name: freqway
+    ports:
+      - "8080:80"
+    restart: unless-stopped
