@@ -7,5 +7,5 @@ services:
     image: freqway:latest
     container_name: freqway
     ports:
-      - "8080:80"
+      - "${FREQWAY_PORT:-8080}:8080"
     restart: unless-stopped
